@@ -8,6 +8,15 @@ local.properties
 # Log/OS Files
 *.log
 
+# macOS
+.DS_Store
+._*
+
+# Linux editor backups and trash
+*~
+.directory
+.Trash-*
+
 # Android Studio generated files and folders
 captures/
 .externalNativeBuild/

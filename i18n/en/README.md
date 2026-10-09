@@ -26,6 +26,24 @@ Build the debug APK from PowerShell:
 
 The APK is written to `app/build/outputs/apk/debug/`. On Windows, an ASCII-only repository path such as `C:\dev\mobile-dashboard` is recommended for the most reliable Gradle and unit-test execution.
 
+## FOR PROPER OSes: LINUX and MAC:
+
+- Build and test commands (instead of `.\gradlew.bat`):
+
+```bash
+./gradlew assembleDebug
+./gradlew testDebugUnitTest
+```
+
+- Cyrillic characters in the path are not a problem, but an ASCII-only path is still safer. `android.overridePathCheck=true` in `gradle.properties` is only needed for Windows paths with Cyrillic characters.
+- `gradlew` is already executable. If the permission is lost: `chmod +x gradlew`.
+- `gradlew` must use LF line endings, otherwise you get `bad interpreter`. `.gitattributes` enforces this.
+- JDK: Android Studio uses its bundled JBR, but `./gradlew` from a terminal needs a JDK on `PATH` or `JAVA_HOME`. Gradle downloads JDK 25 itself (see `gradle/gradle-daemon-jvm.properties`) if the network is available on the first build.
+- Android SDK: Android Studio creates `local.properties`. The path is `~/Library/Android/sdk` on macOS and `~/Android/Sdk` on Linux. The file is not committed.
+- Emulator: the host is reachable at `10.0.2.2`, same as on Windows. For a physical device, use the computer's LAN IP.
+- Linux: hardware acceleration for the emulator requires KVM, and the user must be in the `kvm` group.
+- System files such as `.DS_Store` and `*~` are already in `.gitignore`.
+
 ## Application structure
 
 ```text
