@@ -9,7 +9,8 @@ Android-приложение кассира (Java): просмотр стату�
 - Java и XML Views;
 - Android SDK 37, minSdk 24;
 - Gradle 9.6 и Android Gradle Plugin 9.4.1;
-- AndroidX, Material 3 и ConstraintLayout.
+- AndroidX, Material 3 и ConstraintLayout;
+- Retrofit 3, OkHttp 4 и Gson.
 
 ## Запуск
 
@@ -26,6 +27,28 @@ Android-приложение кассира (Java): просмотр стату�
 
 APK появится в `app/build/outputs/apk/debug/`. На Windows для наиболее стабильной работы Gradle и unit-тестов рекомендуется путь к репозиторию, содержащий только ASCII-символы, например `C:\dev\mobile-dashboard`.
 
+## REST API
+
+`PaymentProcessorClient` реализует запросы истории транзакций, одной транзакции и списка терминалов. Адрес API и Bearer-токен передаются при создании клиента и не хранятся в репозитории:
+
+```java
+ApiConfiguration configuration = new ApiConfiguration(
+        "http://10.0.2.2:8080/",
+        token,
+        true
+);
+PaymentProcessorClient client = PaymentProcessorClient.create(configuration);
+PaymentProcessorApi api = client.getApi();
+```
+
+`10.0.2.2` — адрес компьютера-хоста из стандартного Android Emulator. Для физического устройства нужен доступный ему адрес backend. Незашифрованный HTTP разрешён только в debug-сборке; release-клиент должен использовать HTTPS. Третий аргумент включает базовые сетевые логи, при этом заголовок `Authorization` скрывается.
+
+Unit-тесты API-клиента:
+
+```powershell
+.\gradlew.bat testDebugUnitTest
+```
+
 ## Структура приложения
 
 ```text
@@ -37,7 +60,7 @@ com.posterm.mobiledashboard
 └── data        # локальные источники и хранение данных
 ```
 
-На текущем этапе готов минимальный запускаемый экран. Клиент API и пользовательские сценарии будут добавляться отдельными feature-ветками.
+На текущем этапе готовы запускаемый каркас и протестированный REST-клиент. Подключение клиента к экрану и пользовательские сценарии будут добавляться отдельными feature-ветками.
 
 ## Контракты
 
