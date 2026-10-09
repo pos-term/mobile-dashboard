@@ -27,6 +27,24 @@ Android-приложение кассира (Java): просмотр стату�
 
 APK появится в `app/build/outputs/apk/debug/`. На Windows для наиболее стабильной работы Gradle и unit-тестов рекомендуется путь к репозиторию, содержащий только ASCII-символы, например `C:\dev\mobile-dashboard`.
 
+## ДЛЯ НОРМАЛЬНЫХ ОС LINUX и MAC:
+
+- Команды сборки и тестов (вместо `.\gradlew.bat`):
+
+```bash
+./gradlew assembleDebug
+./gradlew testDebugUnitTest
+```
+
+- Кириллица в пути не мешает, но ASCII-путь всё равно безопаснее. Параметр `android.overridePathCheck=true` в `gradle.properties` нужен только для Windows-пути с кириллицей.
+- `gradlew` уже исполняемый. Если права потерялись: `chmod +x gradlew`.
+- Окончания строк `gradlew` должны быть LF, иначе будет `bad interpreter`. Это гарантирует `.gitattributes`.
+- JDK: Android Studio использует встроенный JBR, но для `./gradlew` из терминала нужен JDK в `PATH` или `JAVA_HOME`. Gradle сам скачает JDK 25 (см. `gradle/gradle-daemon-jvm.properties`), если интернет доступен при первой сборке.
+- Android SDK: `local.properties` создаёт Android Studio. На macOS путь `~/Library/Android/sdk`, на Linux `~/Android/Sdk`. Файл не коммитится.
+- Эмулятор: хост доступен по `10.0.2.2`, как и на Windows. Для физического устройства используйте IP компьютера в локальной сети.
+- Linux: для аппаратного ускорения эмулятора нужен KVM, а пользователь должен состоять в группе `kvm`.
+- Системные файлы `.DS_Store`, `*~` и т.п. уже в `.gitignore`.
+
 ## REST API
 
 `PaymentProcessorClient` реализует запросы истории транзакций, одной транзакции и списка терминалов. Адрес API и Bearer-токен передаются при создании клиента и не хранятся в репозитории:
