@@ -10,11 +10,18 @@ import retrofit2.http.GET;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
+import java.util.List;
+
 public interface PaymentProcessorApi {
     @GET("v1/transactions")
     Call<TransactionPage> listTransactions(
             @Query("terminal_id") String terminalId,
-            @Query("status") TransactionStatus status,
+            @Query("status") List<TransactionStatus> statuses,
+            @Query("transaction_id_prefix") String transactionIdPrefix,
+            @Query("min_amount_minor") Long minAmountMinor,
+            @Query("max_amount_minor") Long maxAmountMinor,
+            @Query("currency") String currency,
+            @Query("reason") String reason,
             @Query("from") String fromInclusive,
             @Query("to") String toExclusive,
             @Query("limit") Integer limit,

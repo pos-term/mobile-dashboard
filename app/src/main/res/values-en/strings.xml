@@ -1,0 +1,45 @@
+<resources>
+    <string name="app_name">POS Term Dashboard</string>
+    <string name="transaction_history_title">Transaction history</string>
+    <string name="loading_transactions">Loading transactions</string>
+    <string name="loading_more_transactions">Loading the next page</string>
+    <string name="transactions_empty_title">No transactions yet</string>
+    <string name="transactions_empty_message">New operations will appear here.</string>
+    <string name="transactions_error_title">Could not load history</string>
+    <string name="transactions_error_message">Check the connection and try again.</string>
+    <string name="retry">Retry</string>
+    <string name="transaction_terminal_format">Terminal: %1$s</string>
+    <string name="transaction_time_unknown">Time unavailable</string>
+    <string name="status_pending">Pending</string>
+    <string name="status_success">Successful</string>
+    <string name="status_failed">Failed</string>
+    <string name="status_unknown">Unknown</string>
+    <string name="filters">Filters</string>
+    <string name="filters_count">Filters (%1$d)</string>
+    <string name="filter_dialog_title">Transaction filters</string>
+    <string name="filter_terminal_label">Terminal ID</string>
+    <string name="filter_transaction_id_label">Transaction ID prefix</string>
+    <string name="filter_status_label">Status</string>
+    <string name="filter_min_amount_label">Amount from</string>
+    <string name="filter_max_amount_label">Amount to</string>
+    <string name="filter_currency_label">Currency</string>
+    <string name="filter_currency_any">Any currency</string>
+    <string name="filter_reason_label">Decline reason code</string>
+    <string name="filter_reason_any">Any reason</string>
+    <string name="filter_reason_insufficient_funds">Insufficient funds</string>
+    <string name="filter_reason_card_declined">Card declined</string>
+    <string name="filter_reason_expired_card">Card expired</string>
+    <string name="filter_reason_limit_exceeded">Limit exceeded</string>
+    <string name="filter_invalid_values">Select a currency for amounts and check the range.</string>
+    <string name="filter_date_range">Select date range</string>
+    <string name="filter_date_range_value">%1$s — %2$s</string>
+    <string name="filter_apply">Apply</string>
+    <string name="filter_reset">Reset</string>
+    <string name="cancel">Cancel</string>
+    <string name="transactions_filtered_empty_message">No transactions match the selected filters.</string>
+    <string name="page_previous">Previous page</string>
+    <string name="page_next">Next page</string>
+    <string name="page_previous_arrow" translatable="false">←</string>
+    <string name="page_next_arrow" translatable="false">→</string>
+    <string name="page_number">Page %1$d</string>
+</resources>

@@ -9,7 +9,8 @@ Cashier Android application (Java): real-time transaction status viewing and ope
 - Java and XML Views;
 - Android SDK 37 with minSdk 24;
 - Gradle 9.6 and Android Gradle Plugin 9.4.1;
-- AndroidX, Material 3, and ConstraintLayout.
+- AndroidX Lifecycle, RecyclerView, SwipeRefreshLayout, Material 3, and ConstraintLayout;
+- Retrofit 3, OkHttp 4, and Gson.
 
 ## Run the app
 
@@ -25,6 +26,33 @@ Build the debug APK from PowerShell:
 ```
 
 The APK is written to `app/build/outputs/apk/debug/`. On Windows, an ASCII-only repository path such as `C:\dev\mobile-dashboard` is recommended for the most reliable Gradle and unit-test execution.
+
+Run the API client and ViewModel unit tests with:
+
+```powershell
+.\gradlew.bat testDebugUnitTest
+```
+
+## Transaction history
+
+The first vertical slice displays operation history without contacting the backend. The screen supports:
+
+- initial loading and pull-to-refresh;
+- cursor pagination with previous- and next-page controls;
+- filtering by terminal, one or more statuses, ID prefix, amount range, currency, failure reason code, and date range; currency and reason are selected from lists, and entered amounts are converted to API minor units automatically;
+- empty and error states with retry;
+- `pending`, `success`, and `failed` statuses represented by both text and color;
+- minor-unit amounts formatted with each currency's fraction digits.
+
+The data is stored in `app/src/main/assets/transactions/` and Gson parses it into the same models
+used by the REST client. The UI depends only on `TransactionRepository` and does not know which
+data source is active.
+
+Source selection is centralized in `TransactionRepositoryProvider.create()`. It currently creates
+`MockTransactionRepository` with a 900 ms artificial delay. Filters are applied before cursor
+pagination, matching server request semantics. Temporarily set `MOCK_FORCE_ERROR = true`
+to inspect the error state. To use the backend, replace the mock creation line with
+`createApiRepository()` and provide the current base URL and token in the provider.
 
 ## FOR PROPER OSes: LINUX and MAC:
 
@@ -55,7 +83,8 @@ com.posterm.mobiledashboard
 └── data        # local data sources and persistence
 ```
 
-The current milestone provides a minimal runnable screen. API integration and user flows will be added in separate feature branches.
+The current milestone includes the tested REST client and a mock-backed transaction history screen.
+The next step is to supply runtime backend configuration and switch the repository to the API implementation.
 
 ## Contracts
 

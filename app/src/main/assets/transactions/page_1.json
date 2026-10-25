@@ -1,0 +1,85 @@
+{
+  "items": [
+    {
+      "transaction_id": "tx-1015",
+      "terminal_id": "TERM-04",
+      "amount_minor": 1250,
+      "currency": "RUB",
+      "status": "success",
+      "reason": null,
+      "created_at": "2026-10-25T08:45:12.000Z",
+      "processed_at": "2026-10-25T08:45:14.000Z"
+    },
+    {
+      "transaction_id": "tx-1014",
+      "terminal_id": "TERM-02",
+      "amount_minor": 89900,
+      "currency": "RUB",
+      "status": "pending",
+      "reason": null,
+      "created_at": "2026-10-25T08:39:01.000Z",
+      "processed_at": null
+    },
+    {
+      "transaction_id": "tx-1013",
+      "terminal_id": "TERM-07",
+      "amount_minor": 3499,
+      "currency": "USD",
+      "status": "failed",
+      "reason": "insufficient_funds",
+      "created_at": "2026-10-25T08:31:44.000Z",
+      "processed_at": "2026-10-25T08:31:46.000Z"
+    },
+    {
+      "transaction_id": "tx-1012",
+      "terminal_id": "TERM-01",
+      "amount_minor": 540000,
+      "currency": "JPY",
+      "status": "success",
+      "reason": null,
+      "created_at": "2026-10-25T08:24:19.000Z",
+      "processed_at": "2026-10-25T08:24:21.000Z"
+    },
+    {
+      "transaction_id": "tx-1011",
+      "terminal_id": "TERM-03",
+      "amount_minor": 12750,
+      "currency": "RUB",
+      "status": "success",
+      "reason": null,
+      "created_at": "2026-10-25T08:16:03.000Z",
+      "processed_at": "2026-10-25T08:16:05.000Z"
+    },
+    {
+      "transaction_id": "tx-1010",
+      "terminal_id": "TERM-05",
+      "amount_minor": 7250,
+      "currency": "RUB",
+      "status": "failed",
+      "reason": "card_declined",
+      "created_at": "2026-10-25T08:08:37.000Z",
+      "processed_at": "2026-10-25T08:08:39.000Z"
+    },
+    {
+      "transaction_id": "tx-1009",
+      "terminal_id": "TERM-04",
+      "amount_minor": 250000,
+      "currency": "KWD",
+      "status": "pending",
+      "reason": null,
+      "created_at": "2026-10-25T07:55:29.000Z",
+      "processed_at": null
+    },
+    {
+      "transaction_id": "tx-1008",
+      "terminal_id": "TERM-06",
+      "amount_minor": 19999,
+      "currency": "RUB",
+      "status": "success",
+      "reason": null,
+      "created_at": "2026-10-25T07:48:10.000Z",
+      "processed_at": "2026-10-25T07:48:12.000Z"
+    }
+  ],
+  "next_cursor": "mock-page-2"
+}

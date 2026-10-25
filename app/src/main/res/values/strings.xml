@@ -1,3 +1,45 @@
 <resources>
     <string name="app_name">POS Term Dashboard</string>
+    <string name="transaction_history_title">История транзакций</string>
+    <string name="loading_transactions">Загрузка транзакций</string>
+    <string name="loading_more_transactions">Загрузка следующей страницы</string>
+    <string name="transactions_empty_title">Транзакций пока нет</string>
+    <string name="transactions_empty_message">Новые операции появятся здесь.</string>
+    <string name="transactions_error_title">Не удалось загрузить историю</string>
+    <string name="transactions_error_message">Проверьте подключение и попробуйте снова.</string>
+    <string name="retry">Повторить</string>
+    <string name="transaction_terminal_format">Терминал: %1$s</string>
+    <string name="transaction_time_unknown">Время неизвестно</string>
+    <string name="status_pending">В обработке</string>
+    <string name="status_success">Успешно</string>
+    <string name="status_failed">Ошибка</string>
+    <string name="status_unknown">Неизвестно</string>
+    <string name="filters">Фильтры</string>
+    <string name="filters_count">Фильтры (%1$d)</string>
+    <string name="filter_dialog_title">Фильтры транзакций</string>
+    <string name="filter_terminal_label">ID терминала</string>
+    <string name="filter_transaction_id_label">Префикс ID транзакции</string>
+    <string name="filter_status_label">Статус</string>
+    <string name="filter_min_amount_label">Сумма от</string>
+    <string name="filter_max_amount_label">Сумма до</string>
+    <string name="filter_currency_label">Валюта</string>
+    <string name="filter_currency_any">Любая валюта</string>
+    <string name="filter_reason_label">Код причины отказа</string>
+    <string name="filter_reason_any">Любая причина</string>
+    <string name="filter_reason_insufficient_funds">Недостаточно средств</string>
+    <string name="filter_reason_card_declined">Карта отклонена</string>
+    <string name="filter_reason_expired_card">Срок действия карты истёк</string>
+    <string name="filter_reason_limit_exceeded">Превышен лимит</string>
+    <string name="filter_invalid_values">Для суммы укажите валюту и проверьте диапазон.</string>
+    <string name="filter_date_range">Выбрать период</string>
+    <string name="filter_date_range_value">%1$s — %2$s</string>
+    <string name="filter_apply">Применить</string>
+    <string name="filter_reset">Сбросить</string>
+    <string name="cancel">Отмена</string>
+    <string name="transactions_filtered_empty_message">По выбранным фильтрам ничего не найдено.</string>
+    <string name="page_previous">Предыдущая страница</string>
+    <string name="page_next">Следующая страница</string>
+    <string name="page_previous_arrow" translatable="false">←</string>
+    <string name="page_next_arrow" translatable="false">→</string>
+    <string name="page_number">Страница %1$d</string>
 </resources>
