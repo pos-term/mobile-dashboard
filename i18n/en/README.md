@@ -39,6 +39,7 @@ The first vertical slice displays operation history without contacting the backe
 
 - initial loading and pull-to-refresh;
 - cursor pagination while scrolling;
+- filtering by terminal, status, and date range;
 - empty and error states with retry;
 - `pending`, `success`, and `failed` statuses represented by both text and color;
 - minor-unit amounts formatted with each currency's fraction digits.
@@ -48,7 +49,8 @@ used by the REST client. The UI depends only on `TransactionRepository` and does
 data source is active.
 
 Source selection is centralized in `TransactionRepositoryProvider.create()`. It currently creates
-`MockTransactionRepository` with a 900 ms artificial delay. Temporarily set `MOCK_FORCE_ERROR = true`
+`MockTransactionRepository` with a 900 ms artificial delay. Filters are applied before cursor
+pagination, matching server request semantics. Temporarily set `MOCK_FORCE_ERROR = true`
 to inspect the error state. To use the backend, replace the mock creation line with
 `createApiRepository()` and provide the current base URL and token in the provider.
 
