@@ -9,6 +9,8 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule;
 
 import com.google.gson.Gson;
 import com.posterm.mobiledashboard.model.TransactionPage;
+import com.posterm.mobiledashboard.model.TransactionStatus;
+import com.posterm.mobiledashboard.repository.TransactionFilter;
 import com.posterm.mobiledashboard.repository.TransactionRepository;
 
 import org.junit.Rule;
@@ -93,6 +95,28 @@ public final class TransactionListViewModelTest {
         assertFalse(state.isLoadingMore());
     }
 
+    @Test
+    public void applyingFilterReloadsFirstPageWithSelectedValues() {
+        FakeRepository repository = new FakeRepository(true);
+        repository.enqueueSuccess(page("tx-all", "cursor-old"));
+        repository.enqueueSuccess(page("tx-filtered", null));
+        TransactionListViewModel viewModel = new TransactionListViewModel(repository);
+        TransactionFilter filter = new TransactionFilter(
+                "TERM-02",
+                TransactionStatus.FAILED,
+                "2026-10-24T00:00:00.000Z",
+                "2026-10-26T00:00:00.000Z"
+        );
+
+        viewModel.applyFilter(filter);
+
+        assertEquals(filter, viewModel.getCurrentFilter());
+        assertEquals(filter, repository.filters.get(1));
+        assertEquals(Arrays.asList(null, null), repository.cursors);
+        assertEquals(1, stateOf(viewModel).getTransactions().size());
+        assertEquals("tx-filtered", stateOf(viewModel).getTransactions().get(0).getTransactionId());
+    }
+
     private TransactionListState stateOf(TransactionListViewModel viewModel) {
         TransactionListState state = viewModel.getState().getValue();
         assertNotNull(state);
@@ -120,6 +144,7 @@ public final class TransactionListViewModelTest {
         private final boolean autoDispatch;
         private final Deque<Result> results = new ArrayDeque<>();
         private final List<String> cursors = new ArrayList<>();
+        private final List<TransactionFilter> filters = new ArrayList<>();
         private Callback pendingCallback;
 
         FakeRepository(boolean autoDispatch) {
@@ -142,7 +167,8 @@ public final class TransactionListViewModelTest {
         }
 
         @Override
-        public void getTransactions(String cursor, Callback callback) {
+        public void getTransactions(TransactionFilter filter, String cursor, Callback callback) {
+            filters.add(filter);
             cursors.add(cursor);
             if (!autoDispatch) {
                 pendingCallback = callback;
