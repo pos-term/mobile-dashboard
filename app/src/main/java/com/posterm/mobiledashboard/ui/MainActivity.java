@@ -2,6 +2,7 @@ package com.posterm.mobiledashboard.ui;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -24,6 +25,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.posterm.mobiledashboard.R;
 import com.posterm.mobiledashboard.model.TransactionStatus;
@@ -35,21 +37,34 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Currency;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.TreeSet;
 import java.util.TimeZone;
 
 public final class MainActivity extends AppCompatActivity {
     private static final long DAY_MILLIS = 24L * 60L * 60L * 1000L;
     private static final String API_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+    private static final String[] FAILURE_REASON_CODES = {
+            null,
+            "insufficient_funds",
+            "card_declined",
+            "expired_card",
+            "LIMIT_EXCEEDED"
+    };
 
     private TransactionAdapter adapter;
     private MaterialButton filterButton;
+    private MaterialButton previousPageButton;
+    private MaterialButton nextPageButton;
     private SwipeRefreshLayout swipeRefresh;
     private RecyclerView transactionList;
     private ProgressBar loadingIndicator;
     private ProgressBar paginationIndicator;
+    private View paginationControls;
+    private TextView pageNumber;
     private View emptyState;
     private View errorState;
     private TextView emptyMessage;
@@ -64,9 +79,11 @@ public final class MainActivity extends AppCompatActivity {
 
         bindViews();
         TransactionListViewModel viewModel = createViewModel();
-        configureList(viewModel);
+        configureList();
 
         filterButton.setOnClickListener(view -> showFilters(viewModel));
+        previousPageButton.setOnClickListener(view -> viewModel.loadPreviousPage());
+        nextPageButton.setOnClickListener(view -> viewModel.loadNextPage());
         swipeRefresh.setOnRefreshListener(viewModel::refresh);
         MaterialButton retryButton = findViewById(R.id.retry_button);
         retryButton.setOnClickListener(view -> viewModel.retry());
@@ -76,9 +93,13 @@ public final class MainActivity extends AppCompatActivity {
     private void bindViews() {
         swipeRefresh = findViewById(R.id.swipe_refresh);
         filterButton = findViewById(R.id.filter_button);
+        previousPageButton = findViewById(R.id.previous_page_button);
+        nextPageButton = findViewById(R.id.next_page_button);
         transactionList = findViewById(R.id.transaction_list);
         loadingIndicator = findViewById(R.id.loading_indicator);
         paginationIndicator = findViewById(R.id.pagination_indicator);
+        paginationControls = findViewById(R.id.pagination_controls);
+        pageNumber = findViewById(R.id.page_number);
         emptyState = findViewById(R.id.empty_state);
         emptyMessage = findViewById(R.id.empty_message);
         errorState = findViewById(R.id.error_state);
@@ -101,23 +122,10 @@ public final class MainActivity extends AppCompatActivity {
         return new ViewModelProvider(this, factory).get(TransactionListViewModel.class);
     }
 
-    private void configureList(TransactionListViewModel viewModel) {
+    private void configureList() {
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         transactionList.setLayoutManager(layoutManager);
         transactionList.setAdapter(adapter);
-        transactionList.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-                if (dy <= 0) {
-                    return;
-                }
-                int lastVisible = layoutManager.findLastVisibleItemPosition();
-                if (lastVisible >= adapter.getItemCount() - 3) {
-                    viewModel.loadNextPage();
-                }
-            }
-        });
     }
 
     private void render(TransactionListState state, TransactionListViewModel viewModel) {
@@ -133,6 +141,14 @@ public final class MainActivity extends AppCompatActivity {
         adapter.submitList(state.getTransactions());
         swipeRefresh.setRefreshing(state.isRefreshing());
         paginationIndicator.setVisibility(state.isLoadingMore() ? View.VISIBLE : View.GONE);
+        paginationControls.setVisibility(
+                state.getStatus() == TransactionListState.Status.CONTENT || state.hasPrevious()
+                        ? View.VISIBLE
+                        : View.GONE
+        );
+        pageNumber.setText(getString(R.string.page_number, state.getPageNumber()));
+        previousPageButton.setEnabled(state.hasPrevious() && !state.isLoadingMore());
+        nextPageButton.setEnabled(state.hasMore() && !state.isLoadingMore());
 
         loadingIndicator.setVisibility(
                 state.getStatus() == TransactionListState.Status.LOADING ? View.VISIBLE : View.GONE
@@ -172,8 +188,10 @@ public final class MainActivity extends AppCompatActivity {
         TextInputEditText terminalField = dialogView.findViewById(R.id.filter_terminal);
         TextInputEditText minAmountField = dialogView.findViewById(R.id.filter_min_amount);
         TextInputEditText maxAmountField = dialogView.findViewById(R.id.filter_max_amount);
-        TextInputEditText currencyField = dialogView.findViewById(R.id.filter_currency);
-        TextInputEditText reasonField = dialogView.findViewById(R.id.filter_reason);
+        MaterialAutoCompleteTextView currencyField = dialogView.findViewById(
+                R.id.filter_currency
+        );
+        MaterialAutoCompleteTextView reasonField = dialogView.findViewById(R.id.filter_reason);
         Chip pendingChip = dialogView.findViewById(R.id.filter_status_pending);
         Chip successChip = dialogView.findViewById(R.id.filter_status_success);
         Chip failedChip = dialogView.findViewById(R.id.filter_status_failed);
@@ -191,8 +209,8 @@ public final class MainActivity extends AppCompatActivity {
                 currentFilter.getMaxAmountMinor(),
                 currentFilter.getCurrency()
         );
-        currencyField.setText(currentFilter.getCurrency());
-        reasonField.setText(currentFilter.getReason());
+        configureCurrencyField(currencyField, currentFilter.getCurrency());
+        configureFailureReasonField(reasonField, currentFilter.getReason());
         pendingChip.setChecked(currentFilter.getStatuses().contains(TransactionStatus.PENDING));
         successChip.setChecked(currentFilter.getStatuses().contains(TransactionStatus.SUCCESS));
         failedChip.setChecked(currentFilter.getStatuses().contains(TransactionStatus.FAILED));
@@ -250,7 +268,7 @@ public final class MainActivity extends AppCompatActivity {
                         String to = selectedRange[1] < 0
                                 ? null
                                 : formatApiDate(selectedRange[1] + DAY_MILLIS);
-                        String currency = textOf(currencyField);
+                        String currency = selectedCurrencyOf(currencyField);
                         TransactionFilter filter = new TransactionFilter(
                                 textOf(terminalField),
                                 statuses,
@@ -258,7 +276,7 @@ public final class MainActivity extends AppCompatActivity {
                                 amountMinorValueOf(minAmountField, currency),
                                 amountMinorValueOf(maxAmountField, currency),
                                 currency,
-                                textOf(reasonField),
+                                selectedFailureReasonOf(reasonField),
                                 from,
                                 to
                         );
@@ -277,6 +295,97 @@ public final class MainActivity extends AppCompatActivity {
 
     private String textOf(TextInputEditText field) {
         return field.getText() == null ? null : field.getText().toString();
+    }
+
+    private void configureCurrencyField(
+            MaterialAutoCompleteTextView field,
+            String selectedCurrency
+    ) {
+        List<String> options = new ArrayList<>();
+        options.add(getString(R.string.filter_currency_any));
+        TreeSet<String> currencyCodes = new TreeSet<>();
+        for (Currency currency : Currency.getAvailableCurrencies()) {
+            currencyCodes.add(currency.getCurrencyCode());
+        }
+        options.addAll(currencyCodes);
+        field.setAdapter(new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_list_item_1,
+                options
+        ));
+        field.setText(
+                selectedCurrency == null
+                        ? getString(R.string.filter_currency_any)
+                        : selectedCurrency,
+                false
+        );
+    }
+
+    private String selectedCurrencyOf(MaterialAutoCompleteTextView field) {
+        if (field.getText() == null) {
+            return null;
+        }
+        String value = field.getText().toString().trim();
+        if (value.isEmpty() || value.equals(getString(R.string.filter_currency_any))) {
+            return null;
+        }
+        return value;
+    }
+
+    private void configureFailureReasonField(
+            MaterialAutoCompleteTextView field,
+            String selectedReason
+    ) {
+        List<FailureReasonOption> options = new ArrayList<>();
+        options.add(new FailureReasonOption(null, getString(R.string.filter_reason_any)));
+        options.add(new FailureReasonOption(
+                FAILURE_REASON_CODES[1],
+                getString(R.string.filter_reason_insufficient_funds)
+        ));
+        options.add(new FailureReasonOption(
+                FAILURE_REASON_CODES[2],
+                getString(R.string.filter_reason_card_declined)
+        ));
+        options.add(new FailureReasonOption(
+                FAILURE_REASON_CODES[3],
+                getString(R.string.filter_reason_expired_card)
+        ));
+        options.add(new FailureReasonOption(
+                FAILURE_REASON_CODES[4],
+                getString(R.string.filter_reason_limit_exceeded)
+        ));
+
+        FailureReasonOption selected = options.get(0);
+        if (selectedReason != null) {
+            selected = null;
+            for (FailureReasonOption option : options) {
+                if (option.code != null && option.code.equalsIgnoreCase(selectedReason)) {
+                    selected = option;
+                    break;
+                }
+            }
+            if (selected == null) {
+                selected = new FailureReasonOption(selectedReason, selectedReason);
+                options.add(selected);
+            }
+        }
+
+        field.setAdapter(new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_list_item_1,
+                options
+        ));
+        field.setTag(selected.code);
+        field.setText(selected.label, false);
+        field.setOnItemClickListener((parent, view, position, id) -> {
+            FailureReasonOption option = (FailureReasonOption) parent.getItemAtPosition(position);
+            field.setTag(option.code);
+        });
+    }
+
+    private String selectedFailureReasonOf(MaterialAutoCompleteTextView field) {
+        Object selectedCode = field.getTag();
+        return selectedCode instanceof String ? (String) selectedCode : null;
     }
 
     private Long amountMinorValueOf(TextInputEditText field, String currencyCode) {
@@ -339,5 +448,21 @@ public final class MainActivity extends AppCompatActivity {
             view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+    }
+
+    private static final class FailureReasonOption {
+        private final String code;
+        private final String label;
+
+        private FailureReasonOption(String code, String label) {
+            this.code = code;
+            this.label = label;
+        }
+
+        @NonNull
+        @Override
+        public String toString() {
+            return label;
+        }
     }
 }

@@ -15,8 +15,8 @@
 - Stored mock responses as JSON assets and parsed them with Gson into the same `Transaction` and `TransactionPage` models used by the REST client.
 - Applied mock filtering before pagination to match server semantics and generated opaque offset cursors for subsequent pages.
 - Added standard filters for `terminal_id`, multiple `status` values, a transaction ID prefix, an `amount_minor` range, currency, failure reason, `from`, and `to`. The extended optional parameters were added to `infra/api/openapi.yaml` without changing the `/v1` response model.
-- Implemented `TransactionListViewModel` with loading, content, empty, and error states, pull-to-refresh, retry, pagination, stale-request protection, and persistent filter selection.
-- Built the screen with Material 3 XML Views, `RecyclerView`, `SwipeRefreshLayout`, status chips, a filter dialog, and Russian/English resources.
+- Implemented `TransactionListViewModel` with loading, content, empty, and error states, pull-to-refresh, retry, cursor pagination with previous/next page history, stale-request protection, and persistent filter selection.
+- Built the screen with Material 3 XML Views, `RecyclerView`, `SwipeRefreshLayout`, page navigation arrows, status chips, currency and failure-reason dropdowns, a filter dialog, and Russian/English resources.
 - Formatted minor-unit amounts with `Currency.getDefaultFractionDigits()` so currencies with zero, two, or three fraction digits are handled correctly.
 - Kept amount-filter input in user-facing major units and converted it to `min_amount_minor` and `max_amount_minor` according to the selected currency before querying the repository.
 - Kept dates in the API as UTC RFC 3339 values; the date-range filter uses an inclusive `from` boundary and an exclusive `to` boundary.

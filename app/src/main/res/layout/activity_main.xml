@@ -57,7 +57,7 @@
                 android:layout_height="match_parent"
                 android:clipToPadding="false"
                 android:paddingTop="8dp"
-                android:paddingBottom="72dp"
+                android:paddingBottom="88dp"
                 tools:listitem="@layout/item_transaction" />
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
@@ -133,9 +133,54 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|center_horizontal"
-            android:layout_marginBottom="20dp"
+            android:layout_marginBottom="68dp"
             android:contentDescription="@string/loading_more_transactions"
             android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/pagination_controls"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="12dp"
+            android:background="?attr/colorSurface"
+            android:elevation="4dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/previous_page_button"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/page_previous"
+                android:minWidth="0dp"
+                android:padding="0dp"
+                android:text="@string/page_previous_arrow"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/page_number"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:minWidth="96dp"
+                android:gravity="center"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                tools:text="Страница 1" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/next_page_button"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/page_next"
+                android:minWidth="0dp"
+                android:padding="0dp"
+                android:text="@string/page_next_arrow"
+                android:textSize="24sp" />
+        </LinearLayout>
     </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

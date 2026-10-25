@@ -17,14 +17,17 @@ public final class TransactionListViewModel extends ViewModel {
     private final TransactionRepository repository;
     private final MutableLiveData<TransactionListState> state = new MutableLiveData<>();
     private final List<Transaction> transactions = new ArrayList<>();
+    private final List<String> pageCursors = new ArrayList<>();
 
     private String nextCursor;
+    private int currentPageIndex;
     private boolean requestInFlight;
     private int requestGeneration;
     private TransactionFilter currentFilter = TransactionFilter.empty();
 
     public TransactionListViewModel(TransactionRepository repository) {
         this.repository = repository;
+        pageCursors.add(null);
         loadFirstPage(false);
     }
 
@@ -47,11 +50,14 @@ public final class TransactionListViewModel extends ViewModel {
         currentFilter = safeFilter;
         transactions.clear();
         nextCursor = null;
+        currentPageIndex = 0;
+        pageCursors.clear();
+        pageCursors.add(null);
         loadFirstPage(false);
     }
 
     public void refresh() {
-        loadFirstPage(true);
+        loadPage(pageCursors.get(currentPageIndex), currentPageIndex, true, false);
     }
 
     public void retry() {
@@ -63,47 +69,45 @@ public final class TransactionListViewModel extends ViewModel {
             return;
         }
 
-        requestInFlight = true;
-        publish(TransactionListState.Status.CONTENT, false, true, null);
         String requestedCursor = nextCursor;
-        int generation = requestGeneration;
-        repository.getTransactions(currentFilter, requestedCursor, new TransactionRepository.Callback() {
-            @Override
-            public void onSuccess(TransactionPage page) {
-                if (generation != requestGeneration) {
-                    return;
-                }
-                requestInFlight = false;
-                transactions.addAll(itemsOrEmpty(page));
-                nextCursor = page == null ? null : page.getNextCursor();
-                publish(currentContentStatus(), false, false, null);
-            }
+        int targetPageIndex = currentPageIndex + 1;
+        rememberPageCursor(targetPageIndex, requestedCursor);
+        loadPage(requestedCursor, targetPageIndex, false, true);
+    }
 
-            @Override
-            public void onError(Throwable error) {
-                if (generation != requestGeneration) {
-                    return;
-                }
-                requestInFlight = false;
-                publish(currentContentStatus(), false, false, messageOf(error));
-            }
-        });
+    public void loadPreviousPage() {
+        if (requestInFlight || currentPageIndex == 0) {
+            return;
+        }
+        int targetPageIndex = currentPageIndex - 1;
+        loadPage(pageCursors.get(targetPageIndex), targetPageIndex, false, true);
     }
 
     private void loadFirstPage(boolean refreshing) {
+        loadPage(null, 0, refreshing, false);
+    }
+
+    private void loadPage(
+            String cursor,
+            int targetPageIndex,
+            boolean refreshing,
+            boolean paging
+    ) {
         if (requestInFlight) {
             return;
         }
 
         requestInFlight = true;
-        if (refreshing && !transactions.isEmpty()) {
+        if (paging && !transactions.isEmpty()) {
+            publish(TransactionListState.Status.CONTENT, false, true, null);
+        } else if (refreshing && !transactions.isEmpty()) {
             publish(TransactionListState.Status.CONTENT, true, false, null);
         } else {
             publish(TransactionListState.Status.LOADING, false, false, null);
         }
 
         int generation = requestGeneration;
-        repository.getTransactions(currentFilter, null, new TransactionRepository.Callback() {
+        repository.getTransactions(currentFilter, cursor, new TransactionRepository.Callback() {
             @Override
             public void onSuccess(TransactionPage page) {
                 if (generation != requestGeneration) {
@@ -113,6 +117,7 @@ public final class TransactionListViewModel extends ViewModel {
                 transactions.clear();
                 transactions.addAll(itemsOrEmpty(page));
                 nextCursor = page == null ? null : page.getNextCursor();
+                currentPageIndex = targetPageIndex;
                 publish(currentContentStatus(), false, false, null);
             }
 
@@ -130,6 +135,14 @@ public final class TransactionListViewModel extends ViewModel {
                 }
             }
         });
+    }
+
+    private void rememberPageCursor(int pageIndex, String cursor) {
+        if (pageCursors.size() == pageIndex) {
+            pageCursors.add(cursor);
+        } else if (pageCursors.size() > pageIndex) {
+            pageCursors.set(pageIndex, cursor);
+        }
     }
 
     private List<Transaction> itemsOrEmpty(TransactionPage page) {
@@ -156,7 +169,9 @@ public final class TransactionListViewModel extends ViewModel {
                 transactions,
                 refreshing,
                 loadingMore,
+                currentPageIndex > 0,
                 nextCursor != null,
+                currentPageIndex + 1,
                 errorMessage
         ));
     }

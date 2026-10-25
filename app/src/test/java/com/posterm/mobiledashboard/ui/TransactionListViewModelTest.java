@@ -78,7 +78,7 @@ public final class TransactionListViewModelTest {
     }
 
     @Test
-    public void paginationAppendsNextPageAndUsesCursor() {
+    public void nextPageReplacesContentAndUsesCursor() {
         FakeRepository repository = new FakeRepository(true);
         repository.enqueueSuccess(page("tx-1", "cursor-2"));
         repository.enqueueSuccess(page("tx-2", null));
@@ -89,10 +89,31 @@ public final class TransactionListViewModelTest {
 
         TransactionListState state = stateOf(viewModel);
         assertEquals(Arrays.asList(null, "cursor-2"), repository.cursors);
-        assertEquals(2, state.getTransactions().size());
-        assertEquals("tx-2", state.getTransactions().get(1).getTransactionId());
+        assertEquals(1, state.getTransactions().size());
+        assertEquals("tx-2", state.getTransactions().get(0).getTransactionId());
+        assertEquals(2, state.getPageNumber());
+        assertTrue(state.hasPrevious());
         assertFalse(state.hasMore());
         assertFalse(state.isLoadingMore());
+    }
+
+    @Test
+    public void previousPageUsesRememberedCursor() {
+        FakeRepository repository = new FakeRepository(true);
+        repository.enqueueSuccess(page("tx-1", "cursor-2"));
+        repository.enqueueSuccess(page("tx-2", null));
+        repository.enqueueSuccess(page("tx-1", "cursor-2"));
+        TransactionListViewModel viewModel = new TransactionListViewModel(repository);
+
+        viewModel.loadNextPage();
+        viewModel.loadPreviousPage();
+
+        TransactionListState state = stateOf(viewModel);
+        assertEquals(Arrays.asList(null, "cursor-2", null), repository.cursors);
+        assertEquals("tx-1", state.getTransactions().get(0).getTransactionId());
+        assertEquals(1, state.getPageNumber());
+        assertFalse(state.hasPrevious());
+        assertTrue(state.hasMore());
     }
 
     @Test
@@ -115,6 +136,8 @@ public final class TransactionListViewModelTest {
         assertEquals(Arrays.asList(null, null), repository.cursors);
         assertEquals(1, stateOf(viewModel).getTransactions().size());
         assertEquals("tx-filtered", stateOf(viewModel).getTransactions().get(0).getTransactionId());
+        assertEquals(1, stateOf(viewModel).getPageNumber());
+        assertFalse(stateOf(viewModel).hasPrevious());
     }
 
     private TransactionListState stateOf(TransactionListViewModel viewModel) {

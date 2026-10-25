@@ -18,7 +18,9 @@ public final class TransactionListState {
     private final List<Transaction> transactions;
     private final boolean refreshing;
     private final boolean loadingMore;
+    private final boolean hasPrevious;
     private final boolean hasMore;
+    private final int pageNumber;
     private final String errorMessage;
 
     public TransactionListState(
@@ -26,14 +28,18 @@ public final class TransactionListState {
             List<Transaction> transactions,
             boolean refreshing,
             boolean loadingMore,
+            boolean hasPrevious,
             boolean hasMore,
+            int pageNumber,
             String errorMessage
     ) {
         this.status = status;
         this.transactions = Collections.unmodifiableList(new ArrayList<>(transactions));
         this.refreshing = refreshing;
         this.loadingMore = loadingMore;
+        this.hasPrevious = hasPrevious;
         this.hasMore = hasMore;
+        this.pageNumber = pageNumber;
         this.errorMessage = errorMessage;
     }
 
@@ -53,8 +59,16 @@ public final class TransactionListState {
         return loadingMore;
     }
 
+    public boolean hasPrevious() {
+        return hasPrevious;
+    }
+
     public boolean hasMore() {
         return hasMore;
+    }
+
+    public int getPageNumber() {
+        return pageNumber;
     }
 
     public String getErrorMessage() {
