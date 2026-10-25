@@ -10,6 +10,8 @@ import com.posterm.mobiledashboard.model.TransactionStatus;
 
 import org.junit.Test;
 
+import java.util.Arrays;
+
 public final class TransactionFilterTest {
     @Test
     public void matchesTerminalAndStatusIgnoringTerminalCase() {
@@ -72,13 +74,129 @@ public final class TransactionFilterTest {
         assertEquals(3, filter.activeFilterCount());
     }
 
+    @Test
+    public void matchesExtendedFiltersAndMultipleStatuses() {
+        Transaction transaction = transaction(
+                "tx-12345",
+                "TERM-02",
+                15_050L,
+                "RUB",
+                "failed",
+                "LIMIT_EXCEEDED",
+                "2026-10-25T08:00:00.000Z"
+        );
+        TransactionFilter filter = new TransactionFilter(
+                null,
+                Arrays.asList(TransactionStatus.PENDING, TransactionStatus.FAILED),
+                "TX-123",
+                15_000L,
+                16_000L,
+                "rub",
+                "limit_exceeded",
+                null,
+                null
+        );
+
+        assertTrue(filter.matches(transaction));
+        assertEquals("RUB", filter.getCurrency());
+        assertEquals(5, filter.activeFilterCount());
+    }
+
+    @Test
+    public void rejectsAmountOutsideInclusiveRange() {
+        Transaction transaction = transaction(
+                "tx-1",
+                "TERM-01",
+                1_250L,
+                "RUB",
+                "success",
+                null,
+                "2026-10-25T08:00:00.000Z"
+        );
+
+        assertFalse(new TransactionFilter(
+                null,
+                null,
+                null,
+                1_251L,
+                null,
+                null,
+                null,
+                null,
+                null
+        ).matches(transaction));
+        assertFalse(new TransactionFilter(
+                null,
+                null,
+                null,
+                null,
+                1_249L,
+                null,
+                null,
+                null,
+                null
+        ).matches(transaction));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void rejectsInvertedAmountRange() {
+        new TransactionFilter(
+                null,
+                null,
+                null,
+                2_000L,
+                1_000L,
+                null,
+                null,
+                null,
+                null
+        );
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void rejectsInvalidCurrencyCode() {
+        new TransactionFilter(
+                null,
+                null,
+                null,
+                null,
+                null,
+                "RU",
+                null,
+                null,
+                null
+        );
+    }
+
     private Transaction transaction(String terminalId, String status, String createdAt) {
+        return transaction(
+                "tx-1",
+                terminalId,
+                1_250L,
+                "RUB",
+                status,
+                null,
+                createdAt
+        );
+    }
+
+    private Transaction transaction(
+            String transactionId,
+            String terminalId,
+            long amountMinor,
+            String currency,
+            String status,
+            String reason,
+            String createdAt
+    ) {
+        String reasonJson = reason == null ? "null" : "\"" + reason + "\"";
         String json = "{"
-                + "\"transaction_id\":\"tx-1\","
+                + "\"transaction_id\":\"" + transactionId + "\","
                 + "\"terminal_id\":\"" + terminalId + "\","
-                + "\"amount_minor\":1250,"
-                + "\"currency\":\"RUB\","
+                + "\"amount_minor\":" + amountMinor + ","
+                + "\"currency\":\"" + currency + "\","
                 + "\"status\":\"" + status + "\","
+                + "\"reason\":" + reasonJson + ","
                 + "\"created_at\":\"" + createdAt + "\""
                 + "}";
         return new Gson().fromJson(json, Transaction.class);

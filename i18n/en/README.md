@@ -39,7 +39,7 @@ The first vertical slice displays operation history without contacting the backe
 
 - initial loading and pull-to-refresh;
 - cursor pagination while scrolling;
-- filtering by terminal, status, and date range;
+- filtering by terminal, one or more statuses, ID prefix, amount range, currency, failure reason, and date range; entered amounts are converted to API minor units automatically;
 - empty and error states with retry;
 - `pending`, `success`, and `failed` statuses represented by both text and color;
 - minor-unit amounts formatted with each currency's fraction digits.

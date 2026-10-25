@@ -18,18 +18,17 @@
     <string name="filters_count">Фильтры (%1$d)</string>
     <string name="filter_dialog_title">Фильтры транзакций</string>
     <string name="filter_terminal_label">ID терминала</string>
+    <string name="filter_transaction_id_label">Префикс ID транзакции</string>
     <string name="filter_status_label">Статус</string>
-    <string name="filter_status_all">Все статусы</string>
+    <string name="filter_min_amount_label">Сумма от</string>
+    <string name="filter_max_amount_label">Сумма до</string>
+    <string name="filter_currency_label">Валюта (RUB)</string>
+    <string name="filter_reason_label">Причина ошибки</string>
+    <string name="filter_invalid_values">Для суммы укажите валюту и проверьте диапазон.</string>
     <string name="filter_date_range">Выбрать период</string>
     <string name="filter_date_range_value">%1$s — %2$s</string>
     <string name="filter_apply">Применить</string>
     <string name="filter_reset">Сбросить</string>
     <string name="cancel">Отмена</string>
     <string name="transactions_filtered_empty_message">По выбранным фильтрам ничего не найдено.</string>
-    <string-array name="transaction_status_filter_options">
-        <item>@string/filter_status_all</item>
-        <item>@string/status_pending</item>
-        <item>@string/status_success</item>
-        <item>@string/status_failed</item>
-    </string-array>
 </resources>

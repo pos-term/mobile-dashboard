@@ -2,13 +2,12 @@ package com.posterm.mobiledashboard.ui;
 
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.util.Pair;
@@ -20,6 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.google.android.material.chip.Chip;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.button.MaterialButton;
@@ -34,7 +34,9 @@ import com.posterm.mobiledashboard.repository.TransactionRepositoryProvider;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -164,20 +166,36 @@ public final class MainActivity extends AppCompatActivity {
     private void showFilters(TransactionListViewModel viewModel) {
         TransactionFilter currentFilter = viewModel.getCurrentFilter();
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_transaction_filters, null);
+        TextInputEditText transactionIdField = dialogView.findViewById(
+                R.id.filter_transaction_id
+        );
         TextInputEditText terminalField = dialogView.findViewById(R.id.filter_terminal);
-        AutoCompleteTextView statusField = dialogView.findViewById(R.id.filter_status);
+        TextInputEditText minAmountField = dialogView.findViewById(R.id.filter_min_amount);
+        TextInputEditText maxAmountField = dialogView.findViewById(R.id.filter_max_amount);
+        TextInputEditText currencyField = dialogView.findViewById(R.id.filter_currency);
+        TextInputEditText reasonField = dialogView.findViewById(R.id.filter_reason);
+        Chip pendingChip = dialogView.findViewById(R.id.filter_status_pending);
+        Chip successChip = dialogView.findViewById(R.id.filter_status_success);
+        Chip failedChip = dialogView.findViewById(R.id.filter_status_failed);
         MaterialButton dateRangeButton = dialogView.findViewById(R.id.filter_date_range);
 
+        transactionIdField.setText(currentFilter.getTransactionIdPrefix());
         terminalField.setText(currentFilter.getTerminalId());
-        String[] statusOptions = getResources().getStringArray(
-                R.array.transaction_status_filter_options
+        setAmountValue(
+                minAmountField,
+                currentFilter.getMinAmountMinor(),
+                currentFilter.getCurrency()
         );
-        statusField.setAdapter(new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_dropdown_item_1line,
-                statusOptions
-        ));
-        statusField.setText(statusOptions[statusIndex(currentFilter.getStatus())], false);
+        setAmountValue(
+                maxAmountField,
+                currentFilter.getMaxAmountMinor(),
+                currentFilter.getCurrency()
+        );
+        currencyField.setText(currentFilter.getCurrency());
+        reasonField.setText(currentFilter.getReason());
+        pendingChip.setChecked(currentFilter.getStatuses().contains(TransactionStatus.PENDING));
+        successChip.setChecked(currentFilter.getStatuses().contains(TransactionStatus.SUCCESS));
+        failedChip.setChecked(currentFilter.getStatuses().contains(TransactionStatus.FAILED));
 
         long fromMillis = parseApiDate(currentFilter.getFromInclusive());
         long toExclusiveMillis = parseApiDate(currentFilter.getToExclusive());
@@ -204,67 +222,77 @@ public final class MainActivity extends AppCompatActivity {
             picker.show(getSupportFragmentManager(), "transaction-date-range");
         });
 
-        new MaterialAlertDialogBuilder(this)
+        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.filter_dialog_title)
                 .setView(dialogView)
                 .setNegativeButton(R.string.cancel, null)
-                .setNeutralButton(R.string.filter_reset, (dialog, which) ->
+                .setNeutralButton(R.string.filter_reset, (dialogInterface, which) ->
                         viewModel.applyFilter(TransactionFilter.empty()))
-                .setPositiveButton(R.string.filter_apply, (dialog, which) -> {
-                    int selectedStatus = statusOptionIndex(statusOptions, statusField.getText());
-                    String from = selectedRange[0] < 0
-                            ? null
-                            : formatApiDate(selectedRange[0]);
-                    String to = selectedRange[1] < 0
-                            ? null
-                            : formatApiDate(selectedRange[1] + DAY_MILLIS);
-                    String terminalId = terminalField.getText() == null
-                            ? null
-                            : terminalField.getText().toString();
-                    viewModel.applyFilter(new TransactionFilter(
-                            terminalId,
-                            statusFromIndex(selectedStatus),
-                            from,
-                            to
-                    ));
-                })
-                .show();
+                .setPositiveButton(R.string.filter_apply, null)
+                .create();
+        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                .setOnClickListener(view -> {
+                    try {
+                        List<TransactionStatus> statuses = new ArrayList<>();
+                        if (pendingChip.isChecked()) {
+                            statuses.add(TransactionStatus.PENDING);
+                        }
+                        if (successChip.isChecked()) {
+                            statuses.add(TransactionStatus.SUCCESS);
+                        }
+                        if (failedChip.isChecked()) {
+                            statuses.add(TransactionStatus.FAILED);
+                        }
+
+                        String from = selectedRange[0] < 0
+                                ? null
+                                : formatApiDate(selectedRange[0]);
+                        String to = selectedRange[1] < 0
+                                ? null
+                                : formatApiDate(selectedRange[1] + DAY_MILLIS);
+                        String currency = textOf(currencyField);
+                        TransactionFilter filter = new TransactionFilter(
+                                textOf(terminalField),
+                                statuses,
+                                textOf(transactionIdField),
+                                amountMinorValueOf(minAmountField, currency),
+                                amountMinorValueOf(maxAmountField, currency),
+                                currency,
+                                textOf(reasonField),
+                                from,
+                                to
+                        );
+                        viewModel.applyFilter(filter);
+                        dialog.dismiss();
+                    } catch (IllegalArgumentException error) {
+                        Snackbar.make(
+                                dialogView,
+                                R.string.filter_invalid_values,
+                                Snackbar.LENGTH_LONG
+                        ).show();
+                    }
+                }));
+        dialog.show();
     }
 
-    private int statusIndex(TransactionStatus status) {
-        if (status == TransactionStatus.PENDING) {
-            return 1;
-        }
-        if (status == TransactionStatus.SUCCESS) {
-            return 2;
-        }
-        if (status == TransactionStatus.FAILED) {
-            return 3;
-        }
-        return 0;
+    private String textOf(TextInputEditText field) {
+        return field.getText() == null ? null : field.getText().toString();
     }
 
-    private TransactionStatus statusFromIndex(int index) {
-        if (index == 1) {
-            return TransactionStatus.PENDING;
+    private Long amountMinorValueOf(TextInputEditText field, String currencyCode) {
+        String value = textOf(field);
+        if (value == null || value.trim().isEmpty()) {
+            return null;
         }
-        if (index == 2) {
-            return TransactionStatus.SUCCESS;
-        }
-        if (index == 3) {
-            return TransactionStatus.FAILED;
-        }
-        return null;
+        return CurrencyAmountConverter.toMinorUnits(value, currencyCode);
     }
 
-    private int statusOptionIndex(String[] options, CharSequence selectedText) {
-        String selected = selectedText == null ? "" : selectedText.toString();
-        for (int index = 0; index < options.length; index++) {
-            if (options[index].equals(selected)) {
-                return index;
-            }
+    private void setAmountValue(TextInputEditText field, Long value, String currencyCode) {
+        if (value == null) {
+            field.setText(null);
+        } else {
+            field.setText(CurrencyAmountConverter.toMajorUnits(value, currencyCode));
         }
-        return 0;
     }
 
     private void updateDateRangeButton(MaterialButton button, long[] selectedRange) {

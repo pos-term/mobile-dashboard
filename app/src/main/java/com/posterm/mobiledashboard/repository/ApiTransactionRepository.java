@@ -24,7 +24,12 @@ public final class ApiTransactionRepository implements TransactionRepository {
         TransactionFilter safeFilter = filter == null ? TransactionFilter.empty() : filter;
         api.listTransactions(
                         safeFilter.getTerminalId(),
-                        safeFilter.getStatus(),
+                        safeFilter.getStatuses(),
+                        safeFilter.getTransactionIdPrefix(),
+                        safeFilter.getMinAmountMinor(),
+                        safeFilter.getMaxAmountMinor(),
+                        safeFilter.getCurrency(),
+                        safeFilter.getReason(),
                         safeFilter.getFromInclusive(),
                         safeFilter.getToExclusive(),
                         PAGE_SIZE,
