@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel;
 
 import com.posterm.mobiledashboard.model.Transaction;
 import com.posterm.mobiledashboard.model.TransactionPage;
+import com.posterm.mobiledashboard.repository.TransactionFilter;
 import com.posterm.mobiledashboard.repository.TransactionRepository;
 
 import java.util.ArrayList;
@@ -19,6 +20,8 @@ public final class TransactionListViewModel extends ViewModel {
 
     private String nextCursor;
     private boolean requestInFlight;
+    private int requestGeneration;
+    private TransactionFilter currentFilter = TransactionFilter.empty();
 
     public TransactionListViewModel(TransactionRepository repository) {
         this.repository = repository;
@@ -27,6 +30,24 @@ public final class TransactionListViewModel extends ViewModel {
 
     public LiveData<TransactionListState> getState() {
         return state;
+    }
+
+    public TransactionFilter getCurrentFilter() {
+        return currentFilter;
+    }
+
+    public void applyFilter(TransactionFilter filter) {
+        TransactionFilter safeFilter = filter == null ? TransactionFilter.empty() : filter;
+        if (safeFilter.equals(currentFilter)) {
+            return;
+        }
+
+        requestGeneration++;
+        requestInFlight = false;
+        currentFilter = safeFilter;
+        transactions.clear();
+        nextCursor = null;
+        loadFirstPage(false);
     }
 
     public void refresh() {
@@ -45,9 +66,13 @@ public final class TransactionListViewModel extends ViewModel {
         requestInFlight = true;
         publish(TransactionListState.Status.CONTENT, false, true, null);
         String requestedCursor = nextCursor;
-        repository.getTransactions(requestedCursor, new TransactionRepository.Callback() {
+        int generation = requestGeneration;
+        repository.getTransactions(currentFilter, requestedCursor, new TransactionRepository.Callback() {
             @Override
             public void onSuccess(TransactionPage page) {
+                if (generation != requestGeneration) {
+                    return;
+                }
                 requestInFlight = false;
                 transactions.addAll(itemsOrEmpty(page));
                 nextCursor = page == null ? null : page.getNextCursor();
@@ -56,6 +81,9 @@ public final class TransactionListViewModel extends ViewModel {
 
             @Override
             public void onError(Throwable error) {
+                if (generation != requestGeneration) {
+                    return;
+                }
                 requestInFlight = false;
                 publish(currentContentStatus(), false, false, messageOf(error));
             }
@@ -74,9 +102,13 @@ public final class TransactionListViewModel extends ViewModel {
             publish(TransactionListState.Status.LOADING, false, false, null);
         }
 
-        repository.getTransactions(null, new TransactionRepository.Callback() {
+        int generation = requestGeneration;
+        repository.getTransactions(currentFilter, null, new TransactionRepository.Callback() {
             @Override
             public void onSuccess(TransactionPage page) {
+                if (generation != requestGeneration) {
+                    return;
+                }
                 requestInFlight = false;
                 transactions.clear();
                 transactions.addAll(itemsOrEmpty(page));
@@ -86,6 +118,9 @@ public final class TransactionListViewModel extends ViewModel {
 
             @Override
             public void onError(Throwable error) {
+                if (generation != requestGeneration) {
+                    return;
+                }
                 requestInFlight = false;
                 if (transactions.isEmpty()) {
                     nextCursor = null;

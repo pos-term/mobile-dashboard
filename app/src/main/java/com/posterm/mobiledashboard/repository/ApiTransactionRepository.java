@@ -20,8 +20,16 @@ public final class ApiTransactionRepository implements TransactionRepository {
     }
 
     @Override
-    public void getTransactions(String cursor, Callback callback) {
-        api.listTransactions(null, null, null, null, PAGE_SIZE, cursor)
+    public void getTransactions(TransactionFilter filter, String cursor, Callback callback) {
+        TransactionFilter safeFilter = filter == null ? TransactionFilter.empty() : filter;
+        api.listTransactions(
+                        safeFilter.getTerminalId(),
+                        safeFilter.getStatus(),
+                        safeFilter.getFromInclusive(),
+                        safeFilter.getToExclusive(),
+                        PAGE_SIZE,
+                        cursor
+                )
                 .enqueue(new retrofit2.Callback<TransactionPage>() {
                     @Override
                     public void onResponse(
