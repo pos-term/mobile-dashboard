@@ -1,3 +1,17 @@
 <resources>
     <string name="app_name">POS Term Dashboard</string>
+    <string name="transaction_history_title">История транзакций</string>
+    <string name="loading_transactions">Загрузка транзакций</string>
+    <string name="loading_more_transactions">Загрузка следующей страницы</string>
+    <string name="transactions_empty_title">Транзакций пока нет</string>
+    <string name="transactions_empty_message">Новые операции появятся здесь.</string>
+    <string name="transactions_error_title">Не удалось загрузить историю</string>
+    <string name="transactions_error_message">Проверьте подключение и попробуйте снова.</string>
+    <string name="retry">Повторить</string>
+    <string name="transaction_terminal_format">Терминал: %1$s</string>
+    <string name="transaction_time_unknown">Время неизвестно</string>
+    <string name="status_pending">В обработке</string>
+    <string name="status_success">Успешно</string>
+    <string name="status_failed">Ошибка</string>
+    <string name="status_unknown">Неизвестно</string>
 </resources>

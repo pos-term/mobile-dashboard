@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">POS Term Dashboard</string>
+    <string name="transaction_history_title">Transaction history</string>
+    <string name="loading_transactions">Loading transactions</string>
+    <string name="loading_more_transactions">Loading the next page</string>
+    <string name="transactions_empty_title">No transactions yet</string>
+    <string name="transactions_empty_message">New operations will appear here.</string>
+    <string name="transactions_error_title">Could not load history</string>
+    <string name="transactions_error_message">Check the connection and try again.</string>
+    <string name="retry">Retry</string>
+    <string name="transaction_terminal_format">Terminal: %1$s</string>
+    <string name="transaction_time_unknown">Time unavailable</string>
+    <string name="status_pending">Pending</string>
+    <string name="status_success">Successful</string>
+    <string name="status_failed">Failed</string>
+    <string name="status_unknown">Unknown</string>
+</resources>
