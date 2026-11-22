@@ -98,6 +98,24 @@ public final class TransactionListViewModelTest {
     }
 
     @Test
+    public void retryAfterPagingFailureUsesTheFailedCursor() {
+        FakeRepository repository = new FakeRepository(true);
+        repository.enqueueSuccess(page("tx-1", "cursor-2"));
+        repository.enqueueError(new IOException("offline"));
+        repository.enqueueSuccess(page("tx-2", null));
+        TransactionListViewModel viewModel = new TransactionListViewModel(repository);
+
+        viewModel.loadNextPage();
+        assertEquals("tx-1", stateOf(viewModel).getTransactions().get(0).getTransactionId());
+        assertEquals("offline", stateOf(viewModel).getErrorMessage());
+
+        viewModel.retry();
+        assertEquals(Arrays.asList(null, "cursor-2", "cursor-2"), repository.cursors);
+        assertEquals(2, stateOf(viewModel).getPageNumber());
+        assertEquals("tx-2", stateOf(viewModel).getTransactions().get(0).getTransactionId());
+    }
+
+    @Test
     public void previousPageUsesRememberedCursor() {
         FakeRepository repository = new FakeRepository(true);
         repository.enqueueSuccess(page("tx-1", "cursor-2"));

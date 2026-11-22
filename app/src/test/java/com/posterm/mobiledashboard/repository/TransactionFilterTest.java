@@ -14,27 +14,27 @@ import java.util.Arrays;
 
 public final class TransactionFilterTest {
     @Test
-    public void matchesTerminalAndStatusIgnoringTerminalCase() {
+    public void matchesTerminalAndStatusWithExactTerminalCase() {
         Transaction transaction = transaction(
-                "TERM-02",
+                "term-001",
                 "failed",
                 "2026-10-25T08:00:00.000Z"
         );
 
         assertTrue(new TransactionFilter(
-                "term-02",
+                "term-001",
                 TransactionStatus.FAILED,
                 null,
                 null
         ).matches(transaction));
         assertFalse(new TransactionFilter(
-                "TERM-01",
+                "TERM-001",
                 TransactionStatus.FAILED,
                 null,
                 null
         ).matches(transaction));
         assertFalse(new TransactionFilter(
-                "TERM-02",
+                "term-001",
                 TransactionStatus.SUCCESS,
                 null,
                 null

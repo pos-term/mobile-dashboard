@@ -67,6 +67,7 @@ public final class MainActivity extends AppCompatActivity {
     private TextView pageNumber;
     private View emptyState;
     private View errorState;
+    private TextView errorDetails;
     private TextView emptyMessage;
     private String lastShownError;
 
@@ -103,6 +104,7 @@ public final class MainActivity extends AppCompatActivity {
         emptyState = findViewById(R.id.empty_state);
         emptyMessage = findViewById(R.id.empty_message);
         errorState = findViewById(R.id.error_state);
+        errorDetails = findViewById(R.id.error_details);
         adapter = new TransactionAdapter();
     }
 
@@ -163,10 +165,14 @@ public final class MainActivity extends AppCompatActivity {
                 state.getStatus() == TransactionListState.Status.ERROR ? View.VISIBLE : View.GONE
         );
         swipeRefresh.setEnabled(
-                state.getStatus() == TransactionListState.Status.CONTENT && !state.isLoadingMore()
+                (state.getStatus() == TransactionListState.Status.CONTENT
+                        || state.getStatus() == TransactionListState.Status.EMPTY)
+                        && !state.isLoadingMore()
         );
 
         String errorMessage = state.getErrorMessage();
+        errorDetails.setText(errorMessage);
+        errorDetails.setVisibility(errorMessage == null ? View.GONE : View.VISIBLE);
         if (state.getStatus() == TransactionListState.Status.CONTENT
                 && errorMessage != null
                 && !errorMessage.equals(lastShownError)) {

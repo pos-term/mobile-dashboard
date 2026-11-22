@@ -59,6 +59,8 @@ public final class TransactionAdapter extends RecyclerView.Adapter<TransactionAd
         private final TextView amount;
         private final TextView terminal;
         private final TextView time;
+        private final TextView transactionId;
+        private final TextView reason;
         private final Chip status;
 
         ViewHolder(@NonNull View itemView) {
@@ -66,6 +68,8 @@ public final class TransactionAdapter extends RecyclerView.Adapter<TransactionAd
             amount = itemView.findViewById(R.id.amount);
             terminal = itemView.findViewById(R.id.terminal);
             time = itemView.findViewById(R.id.time);
+            transactionId = itemView.findViewById(R.id.transaction_id);
+            reason = itemView.findViewById(R.id.transaction_reason);
             status = itemView.findViewById(R.id.status_chip);
         }
 
@@ -77,6 +81,15 @@ public final class TransactionAdapter extends RecyclerView.Adapter<TransactionAd
                     transaction.getTerminalId()
             ));
             time.setText(formatTime(context, transaction.getCreatedAt()));
+            transactionId.setText(context.getString(
+                    R.string.transaction_id_format,
+                    transaction.getTransactionId()
+            ));
+            String reasonCode = transaction.getReason();
+            reason.setVisibility(reasonCode == null ? View.GONE : View.VISIBLE);
+            reason.setText(reasonCode == null
+                    ? null
+                    : context.getString(R.string.transaction_reason_format, reasonCode));
             bindStatus(context, transaction.getStatus());
         }
 

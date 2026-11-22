@@ -23,6 +23,7 @@ public final class TransactionListViewModel extends ViewModel {
     private int currentPageIndex;
     private boolean requestInFlight;
     private int requestGeneration;
+    private Runnable retryRequest;
     private TransactionFilter currentFilter = TransactionFilter.empty();
 
     public TransactionListViewModel(TransactionRepository repository) {
@@ -61,7 +62,9 @@ public final class TransactionListViewModel extends ViewModel {
     }
 
     public void retry() {
-        loadFirstPage(false);
+        if (retryRequest != null) {
+            retryRequest.run();
+        }
     }
 
     public void loadNextPage() {
@@ -98,6 +101,7 @@ public final class TransactionListViewModel extends ViewModel {
         }
 
         requestInFlight = true;
+        retryRequest = null;
         if (paging && !transactions.isEmpty()) {
             publish(TransactionListState.Status.CONTENT, false, true, null);
         } else if (refreshing && !transactions.isEmpty()) {
@@ -127,6 +131,7 @@ public final class TransactionListViewModel extends ViewModel {
                     return;
                 }
                 requestInFlight = false;
+                retryRequest = () -> loadPage(cursor, targetPageIndex, refreshing, paging);
                 if (transactions.isEmpty()) {
                     nextCursor = null;
                     publish(TransactionListState.Status.ERROR, false, false, messageOf(error));

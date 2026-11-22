@@ -7,8 +7,11 @@
     <string name="transactions_empty_message">New operations will appear here.</string>
     <string name="transactions_error_title">Could not load history</string>
     <string name="transactions_error_message">Check the connection and try again.</string>
+    <string name="transactions_api_configuration_error">The payments API is not configured. Set valid payment.api.url and payment.api.token values in local.properties and rebuild the debug APK.</string>
     <string name="retry">Retry</string>
     <string name="transaction_terminal_format">Terminal: %1$s</string>
+    <string name="transaction_id_format">Transaction ID: %1$s</string>
+    <string name="transaction_reason_format">Decline reason: %1$s</string>
     <string name="transaction_time_unknown">Time unavailable</string>
     <string name="status_pending">Pending</string>
     <string name="status_success">Successful</string>

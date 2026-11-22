@@ -7,8 +7,11 @@
     <string name="transactions_empty_message">Новые операции появятся здесь.</string>
     <string name="transactions_error_title">Не удалось загрузить историю</string>
     <string name="transactions_error_message">Проверьте подключение и попробуйте снова.</string>
+    <string name="transactions_api_configuration_error">API платежей не настроен. Укажите корректные payment.api.url и payment.api.token в local.properties и пересоберите debug APK.</string>
     <string name="retry">Повторить</string>
     <string name="transaction_terminal_format">Терминал: %1$s</string>
+    <string name="transaction_id_format">ID транзакции: %1$s</string>
+    <string name="transaction_reason_format">Причина отказа: %1$s</string>
     <string name="transaction_time_unknown">Время неизвестно</string>
     <string name="status_pending">В обработке</string>
     <string name="status_success">Успешно</string>

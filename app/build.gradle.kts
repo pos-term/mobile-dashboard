@@ -1,5 +1,29 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
+}
+
+val localProperties = Properties().apply {
+    val propertiesFile = rootProject.layout.projectDirectory.file("local.properties")
+    providers.fileContents(propertiesFile).asText.orNull?.reader()?.use { load(it) }
+}
+
+fun javaStringLiteral(value: String): String = buildString {
+    append('"')
+    for (character in value) {
+        append(
+            when (character) {
+                '\\' -> "\\\\"
+                '"' -> "\\\""
+                '\n' -> "\\n"
+                '\r' -> "\\r"
+                '\t' -> "\\t"
+                else -> character.toString()
+            }
+        )
+    }
+    append('"')
 }
 
 android {
@@ -16,9 +40,30 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "PAYMENT_API_URL", "\"\"")
+        buildConfigField("String", "PAYMENT_API_TOKEN", "\"\"")
+        buildConfigField("boolean", "TRANSACTION_DEMO_MODE", "false")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {
+        debug {
+            buildConfigField(
+                "String", "PAYMENT_API_URL",
+                javaStringLiteral(localProperties.getProperty("payment.api.url", "").trim())
+            )
+            buildConfigField(
+                "String", "PAYMENT_API_TOKEN",
+                javaStringLiteral(localProperties.getProperty("payment.api.token", "").trim())
+            )
+            buildConfigField(
+                "boolean", "TRANSACTION_DEMO_MODE",
+                localProperties.getProperty("payment.demo", "false").trim().toBoolean().toString()
+            )
+        }
         release {
             optimization {
                 enable = true

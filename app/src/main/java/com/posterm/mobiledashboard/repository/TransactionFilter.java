@@ -145,7 +145,7 @@ public final class TransactionFilter {
     }
 
     public boolean matches(Transaction transaction) {
-        if (terminalId != null && !terminalId.equalsIgnoreCase(transaction.getTerminalId())) {
+        if (terminalId != null && !terminalId.equals(transaction.getTerminalId())) {
             return false;
         }
         if (!statuses.isEmpty() && !statuses.contains(transaction.getStatus())) {
