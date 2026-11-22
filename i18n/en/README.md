@@ -2,14 +2,15 @@
 
 > **Language:** English | [Русский](../../README.md)
 
-Cashier Android application (Java): real-time transaction status viewing and operation history via payment-processor REST API.
+Cashier Android application (Java) for viewing transaction history and statuses via payment-processor REST API 1.1.0.
 
 ## Technology
 
 - Java and XML Views;
 - Android SDK 37 with minSdk 24;
 - Gradle 9.6 and Android Gradle Plugin 9.4.1;
-- AndroidX, Material 3, and ConstraintLayout.
+- AndroidX Lifecycle, RecyclerView, SwipeRefreshLayout, Material 3, and ConstraintLayout;
+- Retrofit 3, OkHttp 4, and Gson.
 
 ## Run the app
 
@@ -25,6 +26,46 @@ Build the debug APK from PowerShell:
 ```
 
 The APK is written to `app/build/outputs/apk/debug/`. On Windows, an ASCII-only repository path such as `C:\dev\mobile-dashboard` is recommended for the most reliable Gradle and unit-test execution.
+
+Run the API client and ViewModel unit tests with:
+
+```powershell
+.\gradlew.bat testDebugUnitTest
+```
+
+## Local debug configuration
+
+Start the Compose stack from the `mobile-dashboard` root:
+
+```sh
+docker compose -f ../infra/docker-compose.yml up -d --build payment-processor
+```
+
+Add the following settings to the root `local.properties`, keeping the existing `sdk.dir`:
+
+```properties
+payment.api.url=http://10.0.2.2:8080/
+payment.api.token=dev-token
+```
+
+The standard Android Emulator uses `10.0.2.2` to reach the host. On a physical device, use a reachable host address. The token must match the Compose `API_TOKEN`. Its default test value is `dev-token`.
+
+Rebuild and reinstall the debug APK after changing these settings. Git ignores `local.properties`. The settings are embedded in the debug APK, so use a local test token. Cleartext HTTP is allowed only in debug builds. The history screen shows a configuration error if the URL or token is missing.
+
+Set `payment.demo=true` and rebuild the debug APK to explicitly use mock data without a server. Remove this setting or set it to `false` to return to REST.
+
+## Transaction history
+
+The screen loads history through `GET /v1/transactions` and supports:
+
+- initial loading and pull-to-refresh;
+- cursor pagination with 20 transactions per page and previous- and next-page controls;
+- filtering by terminal, one or more statuses, ID prefix, amount range, currency, failure reason code, and date range; currency and reason are selected from lists, and entered amounts are converted to API minor units automatically;
+- empty and error states with retry;
+- transaction IDs, `pending`, `success`, and `failed` statuses, and decline reason codes when available;
+- minor-unit amounts formatted with each currency's fraction digits.
+
+Demo mode uses the fixtures in `app/src/main/assets/transactions/`. Terminal ID filtering is case-sensitive in both modes.
 
 ## FOR PROPER OSes: LINUX and MAC:
 
@@ -50,12 +91,10 @@ The APK is written to `app/build/outputs/apk/debug/`. On Windows, an ASCII-only 
 com.posterm.mobiledashboard
 ├── ui          # activities, fragments, and view models
 ├── model       # domain models
-├── network     # REST and SSE clients
+├── network     # REST client
 ├── repository  # data-source coordination
 └── data        # local data sources and persistence
 ```
-
-The current milestone provides a minimal runnable screen. API integration and user flows will be added in separate feature branches.
 
 ## Contracts
 

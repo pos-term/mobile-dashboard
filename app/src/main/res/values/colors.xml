@@ -2,4 +2,12 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="status_success_container">#D9F4E4</color>
+    <color name="status_success_content">#145A32</color>
+    <color name="status_pending_container">#FFF0C7</color>
+    <color name="status_pending_content">#6D4C00</color>
+    <color name="status_failed_container">#FFDAD6</color>
+    <color name="status_failed_content">#8C1D18</color>
+    <color name="status_unknown_container">#E4E1E6</color>
+    <color name="status_unknown_content">#47464F</color>
 </resources>

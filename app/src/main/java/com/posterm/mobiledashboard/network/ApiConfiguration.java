@@ -16,6 +16,9 @@ public final class ApiConfiguration {
     ) {
         this.baseUrl = normalizeBaseUrl(baseUrl);
         this.bearerToken = requireValue(bearerToken, "bearerToken");
+        if (!this.bearerToken.matches("[\\x21-\\x7E]+")) {
+            throw new IllegalArgumentException("bearerToken contains invalid characters");
+        }
         this.networkLoggingEnabled = networkLoggingEnabled;
     }
 

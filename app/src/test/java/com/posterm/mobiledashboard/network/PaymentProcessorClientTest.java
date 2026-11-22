@@ -18,6 +18,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import okhttp3.HttpUrl;
 import okhttp3.mockwebserver.MockResponse;
@@ -61,7 +62,12 @@ public final class PaymentProcessorClientTest {
 
         Response<TransactionPage> response = client.getApi().listTransactions(
                 "term-001",
-                TransactionStatus.FAILED,
+                Arrays.asList(TransactionStatus.FAILED, TransactionStatus.PENDING),
+                "0192f0c4",
+                10_000L,
+                20_000L,
+                "RUB",
+                "LIMIT_EXCEEDED",
                 "2026-09-01T00:00:00Z",
                 "2026-10-01T00:00:00Z",
                 25,
@@ -80,7 +86,12 @@ public final class PaymentProcessorClientTest {
         assertNotNull(url);
         assertEquals("/v1/transactions", url.encodedPath());
         assertEquals("term-001", url.queryParameter("terminal_id"));
-        assertEquals("failed", url.queryParameter("status"));
+        assertEquals(Arrays.asList("failed", "pending"), url.queryParameterValues("status"));
+        assertEquals("0192f0c4", url.queryParameter("transaction_id_prefix"));
+        assertEquals("10000", url.queryParameter("min_amount_minor"));
+        assertEquals("20000", url.queryParameter("max_amount_minor"));
+        assertEquals("RUB", url.queryParameter("currency"));
+        assertEquals("LIMIT_EXCEEDED", url.queryParameter("reason"));
         assertEquals("25", url.queryParameter("limit"));
         assertEquals("cursor-1", url.queryParameter("cursor"));
     }

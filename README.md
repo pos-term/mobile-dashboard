@@ -2,14 +2,14 @@
 
 > **Язык / Language:** Русский | [English](i18n/en/README.md)
 
-Android-приложение кассира (Java): просмотр статуса транзакций в реальном времени и истории операций через REST API payment-processor.
+Android-приложение кассира (Java) для просмотра истории и статусов операций через REST API payment-processor 1.1.0.
 
 ## Технологии
 
 - Java и XML Views;
 - Android SDK 37, minSdk 24;
 - Gradle 9.6 и Android Gradle Plugin 9.4.1;
-- AndroidX, Material 3 и ConstraintLayout;
+- AndroidX Lifecycle, RecyclerView, SwipeRefreshLayout, Material 3 и ConstraintLayout;
 - Retrofit 3, OkHttp 4 и Gson.
 
 ## Запуск
@@ -45,21 +45,26 @@ APK появится в `app/build/outputs/apk/debug/`. На Windows для на
 - Linux: для аппаратного ускорения эмулятора нужен KVM, а пользователь должен состоять в группе `kvm`.
 - Системные файлы `.DS_Store`, `*~` и т.п. уже в `.gitignore`.
 
-## REST API
+## Локальная debug-конфигурация REST API
 
-`PaymentProcessorClient` реализует запросы истории транзакций, одной транзакции и списка терминалов. Адрес API и Bearer-токен передаются при создании клиента и не хранятся в репозитории:
+Из корня `mobile-dashboard` запустите локальный Compose-стенд:
 
-```java
-ApiConfiguration configuration = new ApiConfiguration(
-        "http://10.0.2.2:8080/",
-        token,
-        true
-);
-PaymentProcessorClient client = PaymentProcessorClient.create(configuration);
-PaymentProcessorApi api = client.getApi();
+```sh
+docker compose -f ../infra/docker-compose.yml up -d --build payment-processor
 ```
 
-`10.0.2.2` — адрес компьютера-хоста из стандартного Android Emulator. Для физического устройства нужен доступный ему адрес backend. Незашифрованный HTTP разрешён только в debug-сборке; release-клиент должен использовать HTTPS. Третий аргумент включает базовые сетевые логи, при этом заголовок `Authorization` скрывается.
+Добавьте параметры в корневой `local.properties`, сохранив существующий `sdk.dir`:
+
+```properties
+payment.api.url=http://10.0.2.2:8080/
+payment.api.token=dev-token
+```
+
+`10.0.2.2` — адрес хоста из стандартного Android Emulator. Для физического устройства укажите доступный ему адрес. Значение `payment.api.token` должно совпадать с `API_TOKEN` стенда. `dev-token` — стандартное тестовое значение Compose.
+
+После изменения файла пересоберите debug APK и установите его заново. `local.properties` исключён из Git. Параметры встраиваются только в debug APK, поэтому используйте тестовый токен, рассчитанный на локальную разработку. HTTP разрешён только для debug. Если адрес или токен не настроены, экран истории покажет ошибку конфигурации.
+
+Чтобы явно включить историю на мок-данных без сервера, добавьте `payment.demo=true` и пересоберите debug APK. Для возврата к REST удалите этот параметр или задайте `false`.
 
 Unit-тесты API-клиента:
 
@@ -67,18 +72,30 @@ Unit-тесты API-клиента:
 .\gradlew.bat testDebugUnitTest
 ```
 
+## История транзакций
+
+Экран загружает операции через `GET /v1/transactions` и поддерживает:
+
+- начальную загрузку и pull-to-refresh;
+- курсорную пагинацию по 20 операций с кнопками перехода на предыдущую и следующую страницу;
+- фильтрацию по терминалу, одному или нескольким статусам, префиксу ID, диапазону суммы, валюте, коду причины отказа и диапазону дат; валюта и причина выбираются из списка, а введённые суммы автоматически переводятся в минорные единицы API;
+- пустое состояние и ошибку с повтором запроса;
+- ID транзакции, статусы `pending`, `success` и `failed`, а также код причины отказа при наличии;
+- суммы в минорных единицах с учётом числа знаков валюты.
+
+Деморежим использует файлы из `app/src/main/assets/transactions/`. В обоих режимах
+`terminal_id` фильтруется с учётом регистра.
+
 ## Структура приложения
 
 ```text
 com.posterm.mobiledashboard
 ├── ui          # Activity, Fragment и ViewModel
 ├── model       # доменные модели
-├── network     # REST- и SSE-клиенты
+├── network     # REST-клиент
 ├── repository  # координация источников данных
 └── data        # локальные источники и хранение данных
 ```
-
-На текущем этапе готовы запускаемый каркас и протестированный REST-клиент. Подключение клиента к экрану и пользовательские сценарии будут добавляться отдельными feature-ветками.
 
 ## Контракты
 
